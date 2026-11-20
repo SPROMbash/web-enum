@@ -1,0 +1,7 @@
+{"type":"configuration","target_url":"http://example.com/","threads":10,"rate_limit":20}
+{"type":"response","url":"http://example.com/admin","original_url":"http://example.com/","path":"/admin","wildcard":false,"status":301,"method":"GET","content_length":169,"line_count":7,"word_count":11,"headers":{"content-type":"text/html","Location":"http://example.com/admin/","server":"nginx/1.18.0"},"extension":""}
+{"type":"response","url":"http://example.com/backup.txt","original_url":"http://example.com/","path":"/backup.txt","wildcard":false,"status":200,"method":"GET","content_length":512,"line_count":20,"word_count":80,"headers":{"content-type":"text/plain"},"extension":"txt"}
+{"type":"response","url":"http://example.com/notreal","original_url":"http://example.com/","path":"/notreal","wildcard":true,"status":200,"method":"GET","content_length":19,"line_count":1,"word_count":4,"headers":{},"extension":""}
+{"type":"response","url":"http://example.com/nostatus","status":null,"content_length":5}
+{"type":"statistics","timeouts":0,"requests":120,"expected_per_scan":120,"total_expected":120,"errors":0}
+{"type":"response","url":"http://example.com/trunc

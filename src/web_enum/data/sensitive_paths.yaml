@@ -1,0 +1,177 @@
+# Sensitive files probed on every scan (relative to the target's base directory).
+#
+# A file is reported ONLY if the response is 200, is not the server's soft-404
+# page, and its body matches 'verify' (a regex; the body is decoded as latin-1 so
+# binary magic numbers can be matched too). Status codes lie; content does not.
+#
+#   path:     what to request
+#   title:    finding title
+#   severity: high | medium | low | info   (see the policy in models.py)
+#   verify:   regex the body must match
+#   fix:      recommendation
+
+- path: .git/HEAD
+  title: Git repository exposed (.git/HEAD)
+  severity: high
+  verify: '\A(ref: refs/|[0-9a-f]{40}\s*\Z)'
+  fix: Block access to .git/ (or deploy without it). The whole source code and its history can be downloaded (git-dumper).
+- path: .git/config
+  title: Git repository exposed (.git/config)
+  severity: high
+  verify: '\[core\]'
+  fix: Block access to .git/; check the config for credentials in remote URLs.
+- path: .svn/entries
+  title: Subversion metadata exposed
+  severity: high
+  verify: '\A(\d+\s*\n|<\?xml)'
+  fix: Block access to .svn/ directories.
+- path: .svn/wc.db
+  title: Subversion database exposed
+  severity: high
+  verify: '\ASQLite format 3'
+  fix: Block access to .svn/ directories.
+- path: .hg/requires
+  title: Mercurial repository exposed
+  severity: high
+  verify: '\A(revlogv1|store|fncache|dotencode)'
+  fix: Block access to .hg/ directories.
+- path: .env
+  title: Environment file exposed (.env)
+  severity: high
+  verify: '(?m)^[A-Z][A-Z0-9_]{2,}=\S'
+  fix: Remove .env from the web root and rotate every secret it contains.
+- path: .env.bak
+  title: Environment file backup exposed
+  severity: high
+  verify: '(?m)^[A-Z][A-Z0-9_]{2,}=\S'
+  fix: Remove the file and rotate every secret it contains.
+- path: .htpasswd
+  title: .htpasswd exposed
+  severity: high
+  verify: '(?m)^[^:\s]+:(\$apr1\$|\$2[aby]\$|\{SHA\}|[./0-9A-Za-z]{13}$)'
+  fix: Keep password files outside the web root; change the exposed passwords.
+- path: wp-config.php.bak
+  title: WordPress configuration backup exposed
+  severity: high
+  verify: 'DB_PASSWORD'
+  fix: Delete configuration backups from the web root and rotate the database password.
+- path: config.php.bak
+  title: PHP configuration backup exposed
+  severity: high
+  verify: '<\?php'
+  fix: Delete configuration backups from the web root; rotate any credentials inside.
+- path: config.php~
+  title: PHP configuration editor backup exposed
+  severity: high
+  verify: '<\?php'
+  fix: Delete editor backup files (~) from the web root.
+- path: .config.php.swp
+  title: Vim swap file of config.php exposed
+  severity: high
+  verify: '\Ab0VIM'
+  fix: Delete swap files from the web root.
+- path: backup.zip
+  title: Backup archive exposed (backup.zip)
+  severity: high
+  verify: '\APK\x03\x04'
+  fix: Never store backups in the web root.
+- path: backup.tar.gz
+  title: Backup archive exposed (backup.tar.gz)
+  severity: high
+  verify: '\A\x1f\x8b'
+  fix: Never store backups in the web root.
+- path: site.zip
+  title: Backup archive exposed (site.zip)
+  severity: high
+  verify: '\APK\x03\x04'
+  fix: Never store backups in the web root.
+- path: www.zip
+  title: Backup archive exposed (www.zip)
+  severity: high
+  verify: '\APK\x03\x04'
+  fix: Never store backups in the web root.
+- path: backup.sql
+  title: Database dump exposed (backup.sql)
+  severity: high
+  verify: '(CREATE TABLE|INSERT INTO|-- MySQL dump|-- PostgreSQL database dump)'
+  fix: Remove database dumps from the web root and treat their data as leaked.
+- path: dump.sql
+  title: Database dump exposed (dump.sql)
+  severity: high
+  verify: '(CREATE TABLE|INSERT INTO|-- MySQL dump|-- PostgreSQL database dump)'
+  fix: Remove database dumps from the web root and treat their data as leaked.
+- path: database.sql
+  title: Database dump exposed (database.sql)
+  severity: high
+  verify: '(CREATE TABLE|INSERT INTO|-- MySQL dump|-- PostgreSQL database dump)'
+  fix: Remove database dumps from the web root and treat their data as leaked.
+- path: id_rsa
+  title: Private SSH key exposed
+  severity: high
+  verify: '-----BEGIN (RSA |OPENSSH |EC |DSA )?PRIVATE KEY-----'
+  fix: Remove the key, revoke it everywhere it is authorised and generate a new one.
+- path: .vscode/sftp.json
+  title: VS Code SFTP configuration exposed
+  severity: high
+  verify: '"(password|privateKeyPath|host)"'
+  fix: Remove editor folders from the deployment; rotate the credentials.
+- path: actuator/env
+  title: Spring Boot actuator /env exposed
+  severity: high
+  verify: '"(propertySources|activeProfiles)"'
+  fix: Disable or protect actuator endpoints (management.endpoints.web.exposure.include).
+- path: actuator
+  title: Spring Boot actuator exposed
+  severity: medium
+  verify: '"_links"\s*:'
+  fix: Expose only health/info, and protect the rest behind authentication.
+- path: phpinfo.php
+  title: phpinfo() page exposed
+  severity: medium
+  verify: '(<title>phpinfo\(\)</title>|PHP Version \d)'
+  fix: Delete phpinfo pages; they disclose configuration, paths and versions.
+- path: info.php
+  title: phpinfo() page exposed (info.php)
+  severity: medium
+  verify: '(<title>phpinfo\(\)</title>|PHP Version \d)'
+  fix: Delete phpinfo pages; they disclose configuration, paths and versions.
+- path: server-status
+  title: Apache server-status exposed
+  severity: medium
+  verify: 'Apache Server Status'
+  fix: Restrict mod_status to localhost (Require local).
+- path: .DS_Store
+  title: macOS .DS_Store file exposed
+  severity: low
+  verify: '\A\x00\x00\x00\x01Bud1'
+  fix: Delete .DS_Store files; they list the files of the directory.
+- path: web.config
+  title: IIS web.config exposed
+  severity: medium
+  verify: '<configuration'
+  fix: Make sure IIS blocks web.config; check it for connection strings.
+- path: crossdomain.xml
+  title: Permissive crossdomain.xml
+  severity: low
+  verify: 'allow-access-from\s+domain="\*"'
+  fix: Restrict crossdomain.xml to trusted domains (or remove it).
+- path: composer.json
+  title: composer.json exposed (dependency disclosure)
+  severity: low
+  verify: '"(require|autoload)"\s*:'
+  fix: Keep composer.json/composer.lock out of the web root.
+- path: package.json
+  title: package.json exposed (dependency disclosure)
+  severity: low
+  verify: '"(dependencies|devDependencies|scripts)"\s*:'
+  fix: Keep package.json out of the web root.
+- path: swagger.json
+  title: API specification exposed (swagger.json)
+  severity: info
+  verify: '"(swagger|openapi)"\s*:'
+  fix: Fine if the API is public; otherwise restrict it. Review every documented endpoint.
+- path: openapi.json
+  title: API specification exposed (openapi.json)
+  severity: info
+  verify: '"openapi"\s*:'
+  fix: Fine if the API is public; otherwise restrict it. Review every documented endpoint.

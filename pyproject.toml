@@ -1,0 +1,78 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "web-enum"
+dynamic = ["version"]  # single source of truth: src/web_enum/__init__.py
+description = "Web enumeration for authorised targets: technology fingerprinting, content discovery (ffuf / feroxbuster / native), security header and form analysis, with prioritised Markdown and JSON reports."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "SpromBash" }]
+keywords = ["pentest", "web", "enumeration", "ffuf", "whatweb", "security-headers", "cli", "htb"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Framework :: AsyncIO",
+    "Intended Audience :: Information Technology",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Security",
+    "Typing :: Typed",
+]
+dependencies = [
+    "typer>=0.12",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "respx>=0.21",
+    "mypy>=1.10",
+    "types-PyYAML>=6.0",
+    "ruff>=0.5",
+    "build>=1.2",
+    "twine>=5.0",  # only for 'twine check'; never used to upload here
+]
+
+[project.scripts]
+web-enum = "web_enum.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/SPROMbash/web-enum"
+Issues = "https://github.com/SPROMbash/web-enum/issues"
+
+[tool.hatch.version]
+path = "src/web_enum/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/web_enum"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md", "LICENSE", "CLAUDE.md", "pyproject.toml"]
+
+[tool.mypy]
+strict = true
+python_version = "3.10"
+platform = "linux"  # the tool targets Kali / Parrot; type-check as Linux even on Windows
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "ASYNC"]

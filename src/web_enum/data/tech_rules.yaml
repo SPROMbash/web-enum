@@ -1,0 +1,195 @@
+# Technology fingerprints used by the native engine (always on, even with whatweb).
+#
+# Matchers (Python regular expressions, case-insensitive) — any of them is enough:
+#   headers: {Header-Name: regex}   every value of that response header
+#   cookies: [regex]                cookie NAMES set by the page (full match)
+#   meta:    regex                  <meta name="generator" content="...">
+#   scripts: regex                  <script src="..."> URLs
+#   title:   regex                  the page <title>
+#   html:    regex                  the page HTML (first 500 KB)
+#   implies: [names]                other technologies this one implies
+# Version: a group named 'version', or else the first capture group that matched.
+# Keep patterns specific: a false positive here sends a tester down the wrong path.
+
+# --- Web servers -------------------------------------------------------------
+- name: nginx
+  category: Web server
+  headers: {Server: 'nginx(?:/([\d.]+))?'}
+- name: Apache HTTP Server
+  category: Web server
+  headers: {Server: 'Apache(?:/([\d.]+))?(?!-Coyote)'}
+- name: Microsoft IIS
+  category: Web server
+  headers: {Server: 'Microsoft-IIS(?:/([\d.]+))?'}
+- name: LiteSpeed
+  category: Web server
+  headers: {Server: 'LiteSpeed'}
+- name: Caddy
+  category: Web server
+  headers: {Server: '^Caddy'}
+- name: Apache Tomcat
+  category: Application server
+  headers: {Server: 'Apache-Coyote'}
+  title: 'Apache Tomcat(?:/([\d.]+))?'
+  implies: [Java]
+- name: Jetty
+  category: Application server
+  headers: {Server: 'Jetty(?:\(([\d.]+)[^)]*\))?'}
+  implies: [Java]
+- name: Werkzeug
+  category: Web server
+  headers: {Server: 'Werkzeug(?:/([\d.]+))?'}
+  implies: [Python]
+- name: Gunicorn
+  category: Web server
+  headers: {Server: 'gunicorn(?:/([\d.]+))?'}
+  implies: [Python]
+- name: Uvicorn
+  category: Web server
+  headers: {Server: '^uvicorn'}
+  implies: [Python]
+
+# --- Languages and frameworks -------------------------------------------------
+- name: PHP
+  category: Language
+  headers: {X-Powered-By: 'PHP(?:/([\d.]+))?'}
+  cookies: ['PHPSESSID']
+- name: Python
+  category: Language
+  headers: {Server: 'Python(?:/([\d.]+))?'}
+- name: Java
+  category: Language
+  cookies: ['JSESSIONID']
+- name: ASP.NET
+  category: Framework
+  headers: {X-Powered-By: 'ASP\.NET', X-AspNet-Version: '([\d.]+)', X-AspNetMvc-Version: '.+'}
+  cookies: ['ASP\.NET_SessionId', '\.ASPXAUTH', '\.AspNetCore\..+']
+  html: 'name="__VIEWSTATE"'
+- name: Express
+  category: Framework
+  headers: {X-Powered-By: '^Express$'}
+  implies: [Node.js]
+- name: Node.js
+  category: Language
+  cookies: ['connect\.sid']
+- name: Django
+  category: Framework
+  cookies: ['csrftoken', 'django_language']
+  html: 'name="csrfmiddlewaretoken"'
+  implies: [Python]
+- name: Flask
+  category: Framework
+  html: 'Werkzeug powered traceback interpreter'
+  implies: [Python]
+- name: Laravel
+  category: Framework
+  cookies: ['laravel_session']
+  implies: [PHP]
+- name: Symfony
+  category: Framework
+  headers: {X-Debug-Token: '.+'}
+  cookies: ['sf_redirect']
+  implies: [PHP]
+- name: CodeIgniter
+  category: Framework
+  cookies: ['ci_session']
+  implies: [PHP]
+- name: Ruby on Rails
+  category: Framework
+  cookies: ['_[a-z0-9_]+_session']
+  html: 'name="csrf-param" content="authenticity_token"'
+- name: Spring Boot
+  category: Framework
+  html: 'Whitelabel Error Page'
+  implies: [Java]
+- name: Next.js
+  category: Framework
+  headers: {X-Powered-By: 'Next\.js(?: ([\d.]+))?'}
+  html: '__NEXT_DATA__|/_next/static/'
+  implies: [React]
+- name: Nuxt.js
+  category: Framework
+  html: 'window\.__NUXT__|/_nuxt/'
+  implies: [Vue.js]
+
+# --- CMS and applications -------------------------------------------------------
+- name: WordPress
+  category: CMS
+  meta: 'WordPress ?([\d.]+)?'
+  html: '/wp-(?:content|includes)/'
+  implies: [PHP]
+- name: Drupal
+  category: CMS
+  meta: 'Drupal ?(\d+)?'
+  headers: {X-Generator: 'Drupal ?(\d+)?', X-Drupal-Cache: '.+'}
+  implies: [PHP]
+- name: Joomla
+  category: CMS
+  meta: 'Joomla!? ?([\d.]+)?'
+  implies: [PHP]
+- name: Moodle
+  category: LMS
+  cookies: ['MoodleSession']
+  implies: [PHP]
+- name: phpMyAdmin
+  category: Database admin
+  title: 'phpMyAdmin'
+  cookies: ['phpMyAdmin', 'pma_lang']
+  implies: [PHP]
+- name: Roundcube
+  category: Webmail
+  title: 'Roundcube Webmail'
+  cookies: ['roundcube_sessid']
+  implies: [PHP]
+- name: Jenkins
+  category: CI/CD
+  headers: {X-Jenkins: '([\d.]+)'}
+  title: 'Jenkins'
+  implies: [Java]
+- name: GitLab
+  category: Code hosting
+  cookies: ['_gitlab_session']
+  meta: 'GitLab'
+- name: Gitea
+  category: Code hosting
+  cookies: ['i_like_gitea']
+  html: 'Powered by Gitea(?: Version: ([\d.]+))?'
+- name: Grafana
+  category: Monitoring
+  title: '^Grafana$'
+  cookies: ['grafana_session']
+  html: '"buildInfo":\{[^}]*"version":"([\d.]+)"'
+- name: Kibana
+  category: Monitoring
+  headers: {kbn-name: '.+', kbn-version: '([\d.]+)'}
+
+# --- Proxies / CDN --------------------------------------------------------------
+- name: Cloudflare
+  category: CDN / proxy
+  headers: {Server: 'cloudflare', CF-RAY: '.+'}
+- name: Varnish
+  category: CDN / proxy
+  headers: {Via: 'varnish', X-Varnish: '.+'}
+
+# --- Front-end ------------------------------------------------------------------
+# Script versions come in three shapes: jquery-3.6.0.min.js, a CDN path
+# (jquery@3.6.0/dist/jquery.min.js) or a query string (jquery.min.js?ver=3.6.0).
+- name: jQuery
+  category: JavaScript library
+  scripts: 'jquery(?:@((?:\d+\.)+\d+)/\S*?)?[.-]?((?:\d+\.)+\d+)?(?:\.slim)?(?:\.min)?\.js(?:\?ver=((?:\d+\.)+\d+))?'
+- name: Bootstrap
+  category: UI framework
+  scripts: 'bootstrap(?:@((?:\d+\.)+\d+)/\S*?)?(?:[.-]((?:\d+\.)+\d+))?(?:\.bundle)?(?:\.min)?\.js(?:\?ver=((?:\d+\.)+\d+))?'
+- name: React
+  category: JavaScript framework
+  html: 'data-reactroot|react(?:-dom)?(?:\.production)?(?:\.min)?\.js'
+- name: Vue.js
+  category: JavaScript framework
+  scripts: 'vue(?:@((?:\d+\.)+\d+)/\S*?)?(?:\.runtime)?(?:\.global)?(?:\.prod)?(?:\.min)?\.js(?:\?ver=((?:\d+\.)+\d+))?'
+  html: '\sdata-v-[0-9a-f]{8}'
+- name: Angular
+  category: JavaScript framework
+  html: 'ng-version="([\d.]+)"'
+- name: Google Analytics
+  category: Analytics
+  scripts: 'google-analytics\.com|gtag/js'

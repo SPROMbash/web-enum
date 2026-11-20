@@ -1,0 +1,4 @@
+[
+{"target":"http://203.0.113.10/","http_status":200,"request_config":{"headers":{"User-Agent":"web-enum/0.1.0"}},"plugins":{"Apache":{"version":["2.4.52"]},"Bootstrap":{},"Country":{"string":["RESERVED"],"module":["ZZ"]},"HTML5":{},"HTTPServer":{"os":["Ubuntu Linux"],"string":["Apache/2.4.52 (Ubuntu)"]},"IP":{"string":["203.0.113.10"]},"JQuery":{"version":["3.6.0"]},"PHP":{"version":["8.1.2"]},"PasswordField":{"string":["password"]},"Script":{},"Title":{"string":["Acme Portal - Login"]},"WordPress":{"version":["6.4.2"]},"X-Powered-By":{"string":["PHP/8.1.2"]},"MetaGenerator":{"string":["WordPress 6.4.2"]}}},
+{}
+]

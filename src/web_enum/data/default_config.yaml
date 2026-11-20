@@ -1,0 +1,50 @@
+# web-enum default configuration.
+# Your file (--config, or ~/.config/web-enum/config.yaml) is merged over this one:
+# you only need to write the keys you want to change.
+
+output_dir: reports          # reports + web-enum.log
+log_level: INFO              # DEBUG | INFO | WARNING | ERROR
+
+# Targets you are AUTHORISED to scan. Without a match the tool refuses unless you
+# pass --authorized. Entries: hostnames (subdomains included), IPs or CIDR ranges.
+#   scope: [lab.local, 10.10.10.0/24, 10.10.11.42]
+scope: []
+
+http:
+  timeout: 10                # seconds per request
+  max_retries: 2             # on 429 / 5xx / network errors, with backoff
+  max_retry_wait: 60         # never wait longer than this for a Retry-After
+  verify_tls: false          # labs (HTB, local) use self-signed certificates
+  max_body_kb: 1024          # bodies are read up to this size, never more
+  user_agent: "web-enum/{version} (+https://github.com/SPROMbash/web-enum)"  # honest UA
+
+# Global limits, shared by the native engine and passed on to ffuf / feroxbuster.
+limits:
+  concurrency: 10            # simultaneous requests
+  rate: 20                   # max requests per second
+  max_requests: 5000         # hard budget per scan (native engine)
+
+modules:                     # what a scan runs (override with --only / --skip)
+  fingerprint: true
+  headers: true
+  discovery: true
+  forms: true
+
+tools:
+  discovery: auto            # auto | ffuf | feroxbuster | native
+  fingerprint: auto          # auto | whatweb | native  (native rules always run too)
+  paths: {}                  # custom binary paths, e.g. {ffuf: /opt/ffuf/ffuf}
+
+discovery:
+  wordlist: auto             # 'auto' = first existing candidate, else the bundled list
+  wordlist_candidates:
+    - /usr/share/seclists/Discovery/Web-Content/common.txt
+    - /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt
+    - /usr/share/wordlists/dirb/common.txt
+  extensions: []             # e.g. [php, txt, bak]
+  status_codes: [200, 204, 301, 302, 307, 308, 401, 403, 405]
+  recursion_depth: 0         # 0 = no recursion into discovered directories
+  soft404_probes: 3          # random paths requested to learn the "not found" response
+
+forms:
+  max_pages: 30              # pages fetched to look for forms

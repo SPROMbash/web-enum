@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head><title>Acme Portal</title></head>
+<body>
+  <!-- 1. Login: POST, relative action, CSRF token, autocomplete decided -->
+  <form method="post" action="/login.php#frag">
+    <input type="hidden" name="csrf_token" value="abc123">
+    <input type="text" name="username">
+    <input type="password" name="password" autocomplete="current-password">
+    <button type="submit">Sign in</button>
+  </form>
+
+  <!-- 2. Search: GET without action (submits to this page) -->
+  <form>
+    <input name="q" type="SEARCH">
+  </form>
+
+  <!-- 3. Upload: POST multipart, no token -->
+  <form method="POST" action="upload.php" enctype="multipart/form-data">
+    <input type="file" name="avatar">
+    <textarea name="comment"></textarea>
+    <select id="visibility"><option>public</option></select>
+  </form>
+
+  <!-- 4. Newsletter to a third party -->
+  <form method="post" action="https://newsletter.example.net/subscribe">
+    <input type="email" name="email">
+    <input type="hidden" name="list" value="7">
+  </form>
+
+  <!-- 5. Unclosed form at the end of the page -->
+  <form method="get" action="/legacy-login">
+    <input type="text" name="user">
+    <input type="password" name="pass">
+</body>
+</html>
